@@ -838,17 +838,23 @@ def myhome(request):
 
     allow_public_share = False if request.cloud_mode else True
 
-    # events
-    if EVENTS_ENABLED:
+    def read_events(email):
         events_count = 15
         events, events_more_offset = get_user_events(email, 0, events_count)
         events_more = True if len(events) == events_count else False
         event_groups = group_events_data(events)
+        return events_count, events, events_more_offset, events_more, event_groups
+
+    if EVENTS_ENABLED:
+        try:
+            events_count, events, events_more_offset, events_more, event_groups = read_events(email)
+        except:
+            try:
+                events_count, events, events_more_offset, events_more, event_groups = read_events(email)
+            except:
+                events_count, events, events_more_offset, events_more, event_groups = 0, None, None, False, None
     else:
-        events, events_more_offset = None, None
-        events_more = False
-        event_groups = None
-        events_count = 0
+        events_count, events, events_more_offset, events_more, event_groups = 0, None, None, False, None
 
     starred_files = get_starred_files(request.user.username)
 
